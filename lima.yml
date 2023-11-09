@@ -22,8 +22,8 @@ images:
   - location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-arm64.img"
     arch: "aarch64"
 
-cpus: 6
-memory: "12GiB"
+memory: "24GiB"
+cpu: 6
 
 mounts:
   - location: "~"
@@ -47,20 +47,22 @@ provision:
     script: |
       #!/bin/bash
       set -eux -o pipefail
-      apt-get update
-      apt-get install -y apt-transport-https ca-certificates curl clang llvm jq
-      apt-get install -y libelf-dev libbpf-dev libpcap-dev libbfd-dev binutils-dev build-essential make
-      apt-get install -y linux-headers-$(uname -r) linux-headers-generic linux-tools-$(uname -r) linux-tools-common linux-tools-generic
-  - mode: system
-    script: |
-      #!/bin/bash
-      set -eux -o pipefail
       command -v docker >/dev/null 2>&1 && exit 0
       export DEBIAN_FRONTEND=noninteractive
       curl -fsSL https://get.docker.com | sh
       # NOTE: you may remove the lines below, if you prefer to use rootful docker, not rootless
       systemctl disable --now docker
       apt-get install -y uidmap dbus-user-session
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get install -y neovim
+      curl -L https://go.dev/dl/go1.18.3.linux-arm64.tar.gz | tar -C /usr/local -xzf -
+      curl -fsSL https://deb.nodesource.com/setup_lts.x | bash
+      apt-get install -y nodejs
+      apt-get install -y make clang llvm libbpf-dev libelf-dev pkg-config build-essential unzip
   - mode: user
     script: |
       #!/bin/bash
@@ -68,6 +70,15 @@ provision:
       systemctl --user start dbus
       dockerd-rootless-setuptool.sh install
       docker context use rootless
+  - mode: user
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      echo 'export PATH="$PATH:/usr/local/go/bin"' >> .profile
+      echo 'export GOBIN="$HOME/bin"' >> .profile
+      echo 'export PATH="$HOME/bin:$PATH"' >> .profile
+      echo '. "$HOME/.cargo/env"' >> .profile
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 probes:
   - script: |
       #!/bin/bash
