@@ -21,7 +21,7 @@ provision:
       set -eux -o pipefail
       apt-get update
       apt-get install -y apt-transport-https ca-certificates curl clang llvm jq
-      apt-get install -y libelf-dev libbpf-dev libpcap-dev libbfd-dev binutils-dev build-essential make
+      apt-get install -y elfutils libcap-dev libdw-dev libelf-dev libbpf-dev libpcap-dev libbfd-dev libzstd-dev binutils-dev build-essential make
       apt-get install -y bpftool bpftrace
       apt-get install -y linux-headers-$(uname -r) linux-headers-generic linux-tools-$(uname -r) linux-tools-common linux-tools-generic
       if [[ $(uname -m) = aarch64 ]]; then
@@ -29,8 +29,8 @@ provision:
       else
         ARCH=$(uname -m)
       fi
-      curl -OL https://go.dev/dl/go1.19.linux-${ARCH}.tar.gz
-      rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.linux-${ARCH}.tar.gz
+      curl -OL https://go.dev/dl/go1.21.linux-${ARCH}.tar.gz
+      rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.linux-${ARCH}.tar.gz
       echo 'export PATH=$PATH:/usr/local/go/bin' >> $HOME/.profile
       source $HOME/.profile
       go version
@@ -41,4 +41,4 @@ provision:
       echo 'export PATH=$PATH:/usr/local/go/bin' >> $HOME/.profile
       source $HOME/.profile
       go version
-      rm go1.19.linux-$(go env GOARCH).tar.gz
+      rm go1.21.linux-$(go env GOARCH).tar.gz
